@@ -1,0 +1,34 @@
+{% extends 'admin/base.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div id="content-main" class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h1>{% trans "Import recenzji z pliku CSV" %}</h1>
+                    <p>{% trans "Wybierz plik CSV z recenzjami do zaimportowania." %}</p>
+                    <p>{% trans "Wymagane kolumny: sku, title, detail, source, rating, rating_name" %}</p>
+                    <p>{% trans "Opcjonalne kolumny: name, status, email" %}</p>
+                    <p>{% trans "Jeśli podasz kolumnę email, system spróbuje połączyć recenzję z kontem klienta o tym adresie email." %}</p>
+                    
+                    <form action="" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.as_p }}
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" class="btn btn-primary" value="{% trans 'Import' %}">
+                        </div>
+                    </form>
+                    
+                    <a href="{% url 'admin:django_reviews_review_changelist' %}" class="btn btn-secondary mt-3">
+                        {% trans "Powrót do listy recenzji" %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

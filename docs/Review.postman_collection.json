@@ -1,0 +1,174 @@
+{
+	"info": {
+		"_postman_id": "7344b032-0352-40d5-ac19-e5c515a21c8a",
+		"name": "Review",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access}}",
+						"type": "default"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sku\": \"TANA-BLACK/WHITE-36\",\n    \"title\": \"To jest mój tytuł ocenydfsdfsdfsdfdsfdsdsfdsfdsfdsfsdfsdfsdfdsfdsfds\",\n    \"detail\": \"To jest moja ocena\",\n    \"source\": \"magento\",\n    \"ratings\":[\n        {\n        \"rate\": 1,\n        \"rating_name\": \"rating\"\n        },\n        {\n        \"rate\": 1,\n        \"rating_name\": \"quality\"\n        },\n        {\n        \"rate\": 1,\n        \"rating_name\": \"delivery\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{address}}/{{provider}}/{{module}}/{{version}}/{{channel}}/reviews/",
+					"host": [
+						"{{address}}"
+					],
+					"path": [
+						"{{provider}}",
+						"{{module}}",
+						"{{version}}",
+						"{{channel}}",
+						"reviews",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Modify review",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "6f357ea616bf762da2543a6cf868ac03905b647f5a5b911bd46e0c180b8ab75c",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "x-api-key",
+							"type": "string"
+						},
+						{
+							"key": "in",
+							"value": "header",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access}}",
+						"type": "default",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"To jest mój tytuł ocenydfsdfsdfsdfdsfdsdsfdsfdsfdsfsdfsdfsdfdsfdsfds\",\n    \"detail\": \"To jest moja ocena\",\n    \"source\": \"magento\",\n    \"status\": \"pending\",\n    \"ratings\":[\n        {\n        \"rate\": 5,\n        \"rating_name\": \"delivery\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{address}}/{{provider}}/{{module}}/{{version}}/{{channel}}/reviews/36be1a2b-6abc-480e-a994-29416e77374e/",
+					"host": [
+						"{{address}}"
+					],
+					"path": [
+						"{{provider}}",
+						"{{module}}",
+						"{{version}}",
+						"{{channel}}",
+						"reviews",
+						"36be1a2b-6abc-480e-a994-29416e77374e",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get review",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access}}",
+						"type": "default"
+					}
+				],
+				"url": {
+					"raw": "{{address}}/{{provider}}/{{module}}/{{version}}/{{channel}}/reviews/?sku[]=TANA-BLACK/WHITE-36&limit=2&page=1",
+					"host": [
+						"{{address}}"
+					],
+					"path": [
+						"{{provider}}",
+						"{{module}}",
+						"{{version}}",
+						"{{channel}}",
+						"reviews",
+						""
+					],
+					"query": [
+						{
+							"key": "sku[]",
+							"value": "TANA-BLACK/WHITE-36"
+						},
+						{
+							"key": "limit",
+							"value": "2"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "module",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
