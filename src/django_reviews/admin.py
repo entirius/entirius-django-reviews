@@ -10,6 +10,7 @@ from django.urls import path
 from django_reviews.domain.importers.review_importer import ReviewImporter
 from django_reviews.enum import ReviewType
 from django_reviews.models import APIKey, ProductRepresentation, Rate, Review
+from django_reviews.utils.api_keys import access_installed, mask_key
 
 
 class CsvImportForm(forms.Form):
@@ -25,9 +26,25 @@ class CsvImportForm(forms.Form):
 
 @admin.register(APIKey)
 class APIKeyReviewAdmin(admin.ModelAdmin):
+    """Keys show only their last four characters; with django_access installed they are read-only (tokens rule)."""
+
     model = APIKey
-    list_display = ["key"]
-    readonly_fields = ["created_at", "modified_at"]
+    list_display = ["masked_key"]
+    exclude = ("key",)
+    readonly_fields = ["masked_key", "created_at", "modified_at"]
+
+    @admin.display(description="key")
+    def masked_key(self, obj) -> str:
+        return mask_key(obj.key)
+
+    def has_add_permission(self, request) -> bool:
+        return not access_installed() and super().has_add_permission(request)
+
+    def has_change_permission(self, request, obj=None) -> bool:
+        return not access_installed() and super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None) -> bool:
+        return not access_installed() and super().has_delete_permission(request, obj)
 
 
 class RateReviewInline(admin.TabularInline):
