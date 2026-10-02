@@ -11,6 +11,9 @@ You can see the ApiKeys in grappelli - ApiKey
 manage.py reviews-generate-api-key
 ```
 
+With django-access installed the command refuses: keys are access tokens there
+(`manage.py access_token create --scope reviews.moderate --application <name> --expires-days <days>`).
+
 
 ## Calculate product accepted reviews details
 
