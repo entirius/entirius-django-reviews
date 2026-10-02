@@ -15,17 +15,8 @@ import pytest
 from rest_framework.test import APIClient
 
 from django_reviews.enum import ReviewType
-from django_reviews.models import ProductRepresentation, Review
 
 REVIEWS_URL = "/api/reviews/1/{channel_idx}/reviews/"
-
-
-@pytest.fixture
-def review(db):
-    product = ProductRepresentation.objects.create(sku="KEY-001", average_rate=0, number_of_reviews=0)
-    review = Review(product=product, name="Reviewer", title="Title", detail="Detail")
-    review.save()  # Review.save() saves twice, so objects.create() (force_insert) cannot be used
-    return review
 
 
 def _moderate(review, key: str | None, channel_idx: str = "any-channel"):
