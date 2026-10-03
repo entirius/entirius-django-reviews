@@ -10,6 +10,7 @@ Product reviews and ratings — distribution `entirius-django-reviews`, Django a
 | `make check` | lint + format-check (ruff) |
 | `make fix` | auto-fix lint + format |
 | `make test` | test suite (pytest + pytest-django) |
+| `make test-legacy` | same suite without `django_access` (legacy key path) |
 
 ## Conventions
 

@@ -5,7 +5,7 @@
 Command generate api key. You can provide optional argument:
 --file_path - that indicates the destination path of the file where it is to be saved
 
-You can see the ApiKeys in grappelli - ApiKey
+The admin lists the keys masked (last four characters only); the raw key is written once, by the command, to the file and the output.
 
 ```bash
 manage.py reviews-generate-api-key

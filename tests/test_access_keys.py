@@ -11,12 +11,15 @@ The PATCH moderation route takes the key alone (no customer JWT).
 
 import json
 import logging
+import os
 import secrets
 from datetime import timedelta
 from unittest.mock import patch
 
 import pytest
 
+if os.environ.get("ENTIRIUS_TEST_NO_ACCESS"):
+    pytest.skip("legacy path (ENTIRIUS_TEST_NO_ACCESS)", allow_module_level=True)
 pytest.importorskip("django_access")
 
 from django.contrib import admin  # noqa: E402
@@ -29,7 +32,7 @@ from rest_framework.test import APIClient  # noqa: E402
 
 from django_reviews.enum import ReviewType  # noqa: E402
 from django_reviews.models import APIKey  # noqa: E402
-from django_reviews.utils.api_keys import API_SCOPE  # noqa: E402
+from django_reviews.utils.api_keys import API_SCOPE, key_is_valid  # noqa: E402
 
 OTHER_MODULE_SCOPES = ["returns.api", "vault.api"]
 PUBLISHABLE_SCOPE = "checkout.storefront"
@@ -62,12 +65,12 @@ def _refused(response) -> bool:
 
 @pytest.fixture
 def issue(db):
-    """Issue an unpinned token of one scope; a secret scope gets the expiry it must carry."""
+    """Issue a token of one scope (unpinned unless given a channel); a secret scope gets the expiry it must carry."""
     application = Application.objects.create(name="reviews-tests")
 
-    def issue(scope: str = API_SCOPE) -> tuple[ApiToken, str]:
+    def issue(scope: str = API_SCOPE, channel_idx: str | None = None) -> tuple[ApiToken, str]:
         expiry = timezone.now() + timedelta(days=30)
-        return issue_token(application, scopes=[scope], channel_idx=None, expires_at=expiry, actor=SYSTEM)
+        return issue_token(application, scopes=[scope], channel_idx=channel_idx, expires_at=expiry, actor=SYSTEM)
 
     return issue
 
@@ -135,6 +138,26 @@ class TestScopeAndHeader:
     def test_token_is_not_bound_to_a_channel(self, issue, call):
         _, raw = issue()
         assert _passed(call(raw, channel_idx="other-channel"))
+
+    def test_pinned_token_passes_on_another_channel(self, issue, call):
+        """Memo 15 operator note 1: the shim verifies with ``channel_idx=None``, so the pin is not enforced."""
+        _, raw = issue(channel_idx="pinned-channel")
+        assert _passed(call(raw, channel_idx="other-channel"))
+
+
+@pytest.mark.django_db
+class TestRequestToken:
+    def test_issued_token_is_set_on_the_request(self, issue, rf):
+        token, raw = issue()
+        request = rf.get("/", **{API_KEY: raw})
+        assert key_is_valid(request)
+        assert request.access_token == token
+
+    def test_refusal_leaves_the_request_without_a_token(self, issue, rf):
+        _, raw = issue(PUBLISHABLE_SCOPE)
+        request = rf.get("/", **{API_KEY: raw})
+        assert not key_is_valid(request)
+        assert not hasattr(request, "access_token")
 
 
 @pytest.mark.django_db
