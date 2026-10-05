@@ -3,8 +3,8 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 """The one key check of the keyed routes (X-API-KEY).
 
-With ``django_access`` installed a key is an access token checked by ``verify_api_key`` for ``API_SCOPE``; the keys
-are global (no channel pin), and the legacy table is never read on that path — legacy keys live on as imported tokens
+With ``django_access`` installed a key is an access token checked by ``verify_api_key`` for ``API_SCOPE`` on the
+route's channel (a pinned token passes on its own channel only), and the legacy table is never read on that path — legacy keys live on as imported tokens
 (D28). Without the module: today's legacy query, unchanged. The presented value is never logged.
 """
 
@@ -32,21 +32,21 @@ def token_command() -> str:
     return f"manage.py access_token create --scope {API_SCOPE} --application <name> --expires-days <days>"
 
 
-def key_is_valid(request) -> bool:
-    """True when X-API-KEY carries a key for ``API_SCOPE``."""
+def key_is_valid(request, channel_idx: str | None) -> bool:
+    """True when X-API-KEY carries a key for ``API_SCOPE`` on ``channel_idx`` (legacy keys are global)."""
     key = request.META.get(_HEADER)
     if not key:
         return False
     if access_installed():
-        return _token_is_valid(request, key)
+        return _token_is_valid(request, key, channel_idx)
     return APIKey.objects.filter(key=key).exists()
 
 
-def _token_is_valid(request, key: str) -> bool:
+def _token_is_valid(request, key: str, channel_idx: str | None) -> bool:
     """``verify_api_key`` sees only X-API-KEY: the X-API-ADMIN-KEY alias never stands in for it."""
     from django_access.services.tokens import verify_api_key
 
-    token = verify_api_key(SimpleNamespace(META={_HEADER: key}), API_SCOPE, None)
+    token = verify_api_key(SimpleNamespace(META={_HEADER: key}), API_SCOPE, channel_idx)
     if token is not None:
         request.access_token = token
     return token is not None

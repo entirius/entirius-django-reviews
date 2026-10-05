@@ -3,7 +3,7 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 """The access path: with django_access installed the X-API-KEY is an access token (``verify_api_key``, scope
-``reviews.moderate``). These keys are global: no channel pin.
+``reviews.moderate``) on the route's channel: an unpinned token works on every channel, a pinned one on its own only.
 
 Legacy keys reach it only through the import (``make_api_key``); the legacy table is never read on this path.
 The PATCH moderation route takes the key alone (no customer JWT).
@@ -31,7 +31,7 @@ from django_access.services.tokens import hash_key, issue_token, revoke_token, s
 from rest_framework.test import APIClient  # noqa: E402
 
 from django_reviews.enum import ReviewType  # noqa: E402
-from django_reviews.models import APIKey  # noqa: E402
+from django_reviews.models import APIKey, Review  # noqa: E402
 from django_reviews.utils.api_keys import API_SCOPE, key_is_valid  # noqa: E402
 
 OTHER_MODULE_SCOPES = ["returns.api", "vault.api"]
@@ -139,10 +139,26 @@ class TestScopeAndHeader:
         _, raw = issue()
         assert _passed(call(raw, channel_idx="other-channel"))
 
-    def test_pinned_token_passes_on_another_channel(self, issue, call):
-        """Memo 15 operator note 1: the shim verifies with ``channel_idx=None``, so the pin is not enforced."""
+    def test_pinned_token_is_refused_on_another_channel(self, issue, call):
         _, raw = issue(channel_idx="pinned-channel")
-        assert _passed(call(raw, channel_idx="other-channel"))
+        assert _refused(call(raw, channel_idx="other-channel"))
+
+    def test_pinned_token_passes_on_its_own_channel(self, issue, call, review):
+        Review.objects.filter(pk=review.pk).update(channel_idx="pinned-channel")
+        _, raw = issue(channel_idx="pinned-channel")
+        assert _passed(call(raw, channel_idx="pinned-channel"))
+
+    def test_pinned_token_cannot_reach_another_channels_review_through_its_own(self, issue, call, review):
+        Review.objects.filter(pk=review.pk).update(channel_idx="other-channel")
+        _, raw = issue(channel_idx="pinned-channel")
+        assert call(raw, channel_idx="pinned-channel").status_code == 404
+        review.refresh_from_db()
+        assert review.status != ReviewType.ACCEPTED
+
+    def test_unpinned_token_reaches_a_review_of_any_channel(self, issue, call, review):
+        Review.objects.filter(pk=review.pk).update(channel_idx="other-channel")
+        _, raw = issue()
+        assert _passed(call(raw, channel_idx="any-channel"))
 
 
 @pytest.mark.django_db
@@ -150,13 +166,13 @@ class TestRequestToken:
     def test_issued_token_is_set_on_the_request(self, issue, rf):
         token, raw = issue()
         request = rf.get("/", **{API_KEY: raw})
-        assert key_is_valid(request)
+        assert key_is_valid(request, "any-channel")
         assert request.access_token == token
 
     def test_refusal_leaves_the_request_without_a_token(self, issue, rf):
         _, raw = issue(PUBLISHABLE_SCOPE)
         request = rf.get("/", **{API_KEY: raw})
-        assert not key_is_valid(request)
+        assert not key_is_valid(request, "any-channel")
         assert not hasattr(request, "access_token")
 
 
@@ -174,6 +190,7 @@ def test_every_failure_gives_one_response(issue, call):
         "revoked": revoked_raw,
         "other module": issue(OTHER_MODULE_SCOPES[0])[1],
         "publishable": issue(PUBLISHABLE_SCOPE)[1],
+        "pinned to another channel": issue(channel_idx="other-channel")[1],
         "legacy table only": legacy_only,
     }
     responses = {kind: call(raw) for kind, raw in keys.items()}

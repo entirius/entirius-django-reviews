@@ -14,7 +14,7 @@ def authorize_api(view):
     @wraps(view)
     @api_view
     def _wrapped(request, *args, **kwargs):
-        passed = key_is_valid(request)
+        passed = key_is_valid(request, kwargs.get("channel_idx"))
         if passed:
             response = view(request, *args, **kwargs)
             return response
