@@ -146,6 +146,14 @@ def reviews_view(request, channel_idx=None, *args, **kwargs):
         return post(request, channel_idx, *args, **kwargs)
 
 
+def _moderated_reviews(request, channel_idx: str):
+    """A token pinned to a channel moderates that channel's reviews only; unpinned and legacy keys reach every review."""
+    token = getattr(request, "access_token", None)
+    if token is not None and token.channel_idx:
+        return Review.objects.filter(channel_idx=channel_idx)
+    return Review.objects.all()
+
+
 @csrf_exempt
 @authorize_api
 @require_http_method("PATCH")
@@ -153,7 +161,7 @@ def reviews_view(request, channel_idx=None, *args, **kwargs):
 def modify_review(request, body: ReviewRequestPatch, channel_idx: str, uuid: str, *args, **kwargs):
     if not uuid:
         raise BadRequest("You need to specify the review UUID.")
-    review = Review.objects.filter(uuid=uuid).first()
+    review = _moderated_reviews(request, channel_idx).filter(uuid=uuid).first()
     if not review:
         raise NotFound("There is no review with this UUID.")
     rate_payload = []

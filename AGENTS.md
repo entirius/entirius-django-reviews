@@ -10,6 +10,7 @@ Product reviews and ratings — distribution `entirius-django-reviews`, Django a
 | `make check` | lint + format-check (ruff) |
 | `make fix` | auto-fix lint + format |
 | `make test` | test suite (pytest + pytest-django) |
+| `make test-legacy` | same suite without `django_access` (legacy key path) |
 
 ## Conventions
 
@@ -25,7 +26,8 @@ Product reviews and ratings — distribution `entirius-django-reviews`, Django a
 
 - **Models** (`models/`): `Review` (FK `product` → `ProductRepresentation`, FK `customer` →
   `django_accounts.Customer`, nullable), `Rate` (per-criterion rating, FK → `Review`),
-  `ProductRepresentation` (SKU/name read model reviews attach to), `APIKey` (X-API-KEY auth).
+  `ProductRepresentation` (SKU/name read model reviews attach to), `APIKey` (X-API-KEY auth; with
+  `django_access` installed the key is an access token of scope `reviews.moderate`, checked in `utils/api_keys.py`).
 - **API** (`views/`, `urls/`): built on `django_utils.api` (decorators, exceptions, paginated
   responses) — not DRF. Public GET listing + authenticated submit/patch.
 - **Admin** (`admin.py`): moderation of reviews and CSV import of ratings.
