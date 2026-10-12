@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 3.0.0 — 2026-10-12
 
 - Keys verified by django-access when installed: the X-API-KEY routes check access tokens through
   `verify_api_key` (scope `reviews.moderate` on the URL channel — a pinned token passes on its own
