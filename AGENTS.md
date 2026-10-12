@@ -10,6 +10,7 @@ Product reviews and ratings — distribution `entirius-django-reviews`, Django a
 | `make check` | lint + format-check (ruff) |
 | `make fix` | auto-fix lint + format |
 | `make test` | test suite (pytest + pytest-django) |
+| `make test-legacy` | same suite without `django_access` (legacy key path) |
 
 ## Conventions
 
@@ -20,29 +21,36 @@ Product reviews and ratings — distribution `entirius-django-reviews`, Django a
 - Never rename the package / Django app_label / DB table prefix `django_reviews` — it is a schema contract.
 - Migrations are part of the public contract — never edit an already released migration.
 - Default: do not commit — git is the user's call.
+- No AI attribution in commits or PR descriptions.
 
 ## Architecture
 
 - **Models** (`models/`): `Review` (FK `product` → `ProductRepresentation`, FK `customer` →
   `django_accounts.Customer`, nullable), `Rate` (per-criterion rating, FK → `Review`),
-  `ProductRepresentation` (SKU/name read model reviews attach to), `APIKey` (X-API-KEY auth).
-- **API** (`views/`, `urls/`): built on `django_utils.api` (decorators, exceptions, paginated
+  `ProductRepresentation` (SKU/name read model reviews attach to), `APIKey` (X-API-KEY auth; with
+  `django_access` installed the key is an access token of scope `reviews.moderate`, checked in `utils/api_keys.py`).
+- **API** (`views/`, `urls.py`): built on `django_utils.api` (decorators, exceptions, paginated
   responses) — not DRF. Public GET listing + authenticated submit/patch.
 - **Admin** (`admin.py`): moderation of reviews and CSV import of ratings.
 - **Domain** (`domain/`): marshmallow-dataclass DTOs and the review importer.
 - **Workers** (`worker/`): average-rating recalculation and read-model fill from PIM.
 - **BI** (`bi.py`): `bievents` events for review calculations and Magento sends.
 
-## Integration points
+### Integration points
 
 - `entirius-django-accounts` (**required**) — `Review.customer` FK; the importer resolves a
   `Customer` by e-mail (soft, `try/except ImportError`).
 - `entirius-django-pim` (**required**) — `fill-reviews-product-representation-from-pim` command
   builds the read model from PIM products.
 - `entirius-py-magento2-sdk2` (extra `magento`) — `Review.send_to_magento` pushes reviews when installed.
-- `entirius-django-checkout` — `Channel` used only as a `TYPE_CHECKING` type hint (no runtime dependency).
 
-## Settings Reference
+| Topic | Where |
+|---|---|
+| Package overview | `docs/README.md` |
+| Management commands | `docs/commands.md` |
+| API | `docs/reviews_api.md`, `docs/Review.postman_collection.json` |
+
+## Settings
 
 Read via `getattr(settings, ...)` (see `settings.py`), all with defaults:
 

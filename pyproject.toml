@@ -1,7 +1,21 @@
 [project]
 name = "entirius-django-reviews"
-version = "2.0.0"
-description = "Product reviews and ratings for Django with a REST API and optional Magento export"
+version = "3.0.0"
+description = "Product reviews and ratings for Entirius: REST API, moderation, average rating and optional Magento export"
+keywords = ["django", "ecommerce", "entirius", "reviews", "ratings", "moderation"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Framework :: Django :: 5.2",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
 authors = [{ name = "Entirius" }]
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,7 +45,11 @@ test = [
 magento = ["entirius-py-magento2-sdk2>=2.0.0"]  # Review.send_to_magento pushes reviews when present
 
 [project.urls]
+Homepage = "https://docs.entirius.com/"
+Documentation = "https://github.com/entirius/entirius-django-reviews/tree/develop/docs"
 Repository = "https://github.com/entirius/entirius-django-reviews"
+Changelog = "https://github.com/entirius/entirius-django-reviews/blob/develop/CHANGELOG.md"
+Issues = "https://github.com/entirius/entirius-django-reviews/issues"
 
 [build-system]
 requires = ["hatchling"]
