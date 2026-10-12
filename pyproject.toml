@@ -1,6 +1,6 @@
 [project]
 name = "entirius-django-reviews"
-version = "2.0.0"
+version = "3.0.0"
 description = "Product reviews and ratings for Entirius: REST API, moderation, average rating and optional Magento export"
 keywords = ["django", "ecommerce", "entirius", "reviews", "ratings", "moderation"]
 classifiers = [
